@@ -1,6 +1,5 @@
 [
-  { "name": "Dr. Marten", "price": "$150", "size": "small", "id": 1 },
-  { "name": "Dr. Marten boot", "price": "$180", "size": "medium", "id": 2 },
-  { "name": "TimberLand", "price": "$250", "size": "large", "id": 3 },
-  { "name": "North Face", "price": "$100", "size": "small", "id": 4 }
+  { "name": "Dr. Marten", "price": "$200", "size": "small", "id": 1 },
+  { "name": "Dr. CS Marten", "price": "$120", "size": "medium", "id": 2 },
+  { "name": "NorthFace", "price": "$100", "size": "small", "id": 4 }
 ]

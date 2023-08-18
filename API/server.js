@@ -14,10 +14,14 @@ function requestHandler(req,res) {
    } else if (req.url ==='/items' && req.method === 'GET') {
     getAllItems(req, res)
 
+   } else if (req.url.startsWith('/items/') && req.method === 'GET') {
+getOneItem(req, res)
+
    } else if (req.url ==='/items' && req.method === 'PUT') {
-    console.log("update item to item route")
+   updateItems(req, res)
+
    } else if (req.url ==='/items' && req.method === 'DELETE') {
-    console.log("Delete item from item route")
+    deleteItem(req, res)
    }
 }
 
@@ -71,8 +75,131 @@ function getAllItems(req, res) {
   })
 }
 
+function getOneItem(req, res) {
+  const id = req.url.split('/')[2]
+  fs.readFile(itemsDbPath, 'utf-8', (err, data)=> {
+    if (err) {
+      console.log(err)
+      res.writeHead(404)
+      res.end('An error occured')
+    }
+   const jsonObject = JSON.parse(data)
+   const jsonIndex = jsonObject.findIndex(el => el.id === id * 1)
+   console.log(jsonIndex)
 
-const server = http.createServer(requestHandler);
+   const obj = jsonObject[jsonIndex]
+   console.log(obj)
+
+   res.writeHead(200)
+   res.end(JSON.stringify(obj))
+  })
+}
+
+function updateItems(req, res) {
+  const body = []
+
+ req.on("data", (chunk)=> {
+  body.push(chunk)
+ })
+
+ req.on("end", ()=> {
+  const parsedItem = Buffer.concat(body).toString()
+  const updateDetials = JSON.parse(parsedItem)
+const itemId = updateDetials.id
+
+  fs.readFile(itemsDbPath, 'utf-8', (err, items)=> {
+    if (err) {
+      console.log(err)
+      res.writeHead(404)
+      res.end('An error occured')
+    }
+    res.writeHead(200)
+
+   const jsonObject = JSON.parse(items)
+   const jsonIndex = jsonObject.findIndex(item => item.id === itemId)
+   console.log(jsonIndex)
+
+   const obj = jsonObject[jsonIndex]
+  
+
+  if (jsonIndex === -1) {
+    res.writeHead(404)
+    res.end("Item with specified id not found")
+    return
+  }
+const updatedItems = {...jsonObject[jsonIndex], ...updateDetials}
+
+jsonObject[jsonIndex] = updatedItems
+
+fs.writeFile(itemsDbPath, JSON.stringify(jsonObject), (err)=> {
+  if (err) {
+    console.log(err)
+    res.writeHead(500)
+    res.end(JSON.stringify({
+      message: 'Internal Server Error. Could Not Save Book To Database'
+    }));
+  }
+  res.writeHead(200)
+  res.end("Update successful!");
+})
+  })
+ })
+}
+
+function deleteItem(req, res) {
+  const body = []
+
+ req.on("data", (chunk)=> {
+  body.push(chunk)
+ })
+
+ req.on("end", ()=> {
+  const parsedItem = Buffer.concat(body).toString()
+  const updateDetials = JSON.parse(parsedItem)
+const itemId = updateDetials.id
+
+  fs.readFile(itemsDbPath, 'utf-8', (err, items)=> {
+    if (err) {
+      console.log(err)
+      res.writeHead(404)
+      res.end('An error occured')
+    }
+   
+
+   const jsonObject = JSON.parse(items)
+
+   const jsonIndex = jsonObject.findIndex(item => item.id === itemId)
+   
+
+  //  const obj = jsonObject[jsonIndex]
+  
+
+  if (jsonIndex === -1) {
+    res.writeHead(404)
+    res.end("Item with specified id not found")
+    return
+  }
+
+
+jsonObject.splice(jsonIndex, 1)
+
+fs.writeFile(itemsDbPath, JSON.stringify(jsonObject), (err)=> {
+  if (err) {
+    console.log(err)
+    res.writeHead(500)
+    res.end(JSON.stringify({
+      message: 'Internal Server Error. Could Not Save Book To Database'
+    }));
+  }
+  res.writeHead(200)
+  res.end("Deletion Successful!");
+})
+  })
+ })
+}
+
+
+const server = http.createServer(requestHandler)
 
 server.listen(PORT, HOST_NAME, () => {
   itemsDb = JSON.parse(fs.readFileSync(itemsDbPath, 'utf-8'));
